@@ -952,6 +952,185 @@ Delete
 
     }
 
+    // ─────────── ADD PROJECT ───────────
+    document.getElementById('add-project-btn').addEventListener('click', async () => {
+      const name = document.getElementById('proj-name').value.trim();
+      const live = document.getElementById('proj-live').value.trim();
+      const github = document.getElementById('proj-github').value.trim();
+      const tags = document.getElementById('proj-tags').value.trim();
+      const about = document.getElementById('proj-about').value.trim();
+      const imgFile = document.getElementById('proj-img').files[0];
+
+      if (!name) { toast('Project name is required', 'error'); return; }
+
+      const btn = document.getElementById('add-project-btn');
+      btn.disabled = true;
+
+      try {
+        let imageUrl = '';
+        if (imgFile) {
+          imageUrl = await uploadFile(imgFile, 'projects', 'proj-bar', 'proj-progress');
+        }
+
+        await push(dbRef(db, 'projects'), {
+          name,
+          liveUrl: live,
+          githubUrl: github,
+          tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+          about,
+          imageUrl,
+          createdAt: Date.now()
+        });
+
+        toast('Project added successfully');
+
+        // reset form
+        document.getElementById('proj-name').value = '';
+        document.getElementById('proj-live').value = '';
+        document.getElementById('proj-github').value = '';
+        document.getElementById('proj-tags').value = '';
+        document.getElementById('proj-about').value = '';
+        document.getElementById('proj-img').value = '';
+        document.getElementById('proj-preview').style.display = 'none';
+        document.getElementById('proj-upload-label').textContent = 'Click to upload image';
+
+        loadProjects();
+        loadOverview();
+      } catch (e) {
+        toast('Error: ' + e.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // ─────────── ADD SKILL ───────────
+    document.getElementById('add-skill-btn').addEventListener('click', async () => {
+      const name = document.getElementById('skill-name').value.trim();
+      const cat = document.getElementById('skill-cat').value.trim();
+      const level = document.getElementById('skill-level').value.trim();
+      const about = document.getElementById('skill-about').value.trim();
+
+      if (!name) { toast('Skill name is required', 'error'); return; }
+
+      const btn = document.getElementById('add-skill-btn');
+      btn.disabled = true;
+
+      try {
+        await push(dbRef(db, 'skills'), {
+          name,
+          category: cat,
+          level: level ? Number(level) : 0,
+          about,
+          createdAt: Date.now()
+        });
+
+        toast('Skill added successfully');
+
+        document.getElementById('skill-name').value = '';
+        document.getElementById('skill-cat').value = '';
+        document.getElementById('skill-level').value = '';
+        document.getElementById('skill-about').value = '';
+
+        loadSkills();
+        loadOverview();
+      } catch (e) {
+        toast('Error: ' + e.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // ─────────── ADD CERTIFICATE ───────────
+    document.getElementById('add-cert-btn').addEventListener('click', async () => {
+      const name = document.getElementById('cert-name').value.trim();
+      const issuer = document.getElementById('cert-issuer').value.trim();
+      const date = document.getElementById('cert-date').value.trim();
+      const link = document.getElementById('cert-link').value.trim();
+      const about = document.getElementById('cert-about').value.trim();
+      const imgFile = document.getElementById('cert-img').files[0];
+
+      if (!name) { toast('Certificate name is required', 'error'); return; }
+
+      const btn = document.getElementById('add-cert-btn');
+      btn.disabled = true;
+
+      try {
+        let imageUrl = '';
+        if (imgFile) {
+          imageUrl = await uploadFile(imgFile, 'certificates', 'cert-bar', 'cert-progress');
+        }
+
+        await push(dbRef(db, 'certificates'), {
+          name,
+          issuer,
+          date,
+          link,
+          about,
+          imageUrl,
+          createdAt: Date.now()
+        });
+
+        toast('Certificate added successfully');
+
+        document.getElementById('cert-name').value = '';
+        document.getElementById('cert-issuer').value = '';
+        document.getElementById('cert-date').value = '';
+        document.getElementById('cert-link').value = '';
+        document.getElementById('cert-about').value = '';
+        document.getElementById('cert-img').value = '';
+        document.getElementById('cert-preview').style.display = 'none';
+        document.getElementById('cert-upload-label').textContent = 'Click to upload certificate image';
+
+        loadCerts();
+        loadOverview();
+      } catch (e) {
+        toast('Error: ' + e.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // ─────────── PUBLISH BLOG POST ───────────
+    document.getElementById('add-blog-btn').addEventListener('click', async () => {
+      const title = document.getElementById('blog-title').value.trim();
+      const content = document.getElementById('blog-content').value.trim();
+      const imgFile = document.getElementById('blog-img').files[0];
+
+      if (!title || !content) { toast('Title and content are required', 'error'); return; }
+
+      const btn = document.getElementById('add-blog-btn');
+      btn.disabled = true;
+
+      try {
+        let imageUrl = '';
+        if (imgFile) {
+          imageUrl = await uploadFile(imgFile, 'blogs', 'blog-bar', 'blog-progress');
+        }
+
+        await push(dbRef(db, 'blogs'), {
+          title,
+          content,
+          imageUrl,
+          createdAt: Date.now()
+        });
+
+        toast('Blog post published');
+
+        document.getElementById('blog-title').value = '';
+        document.getElementById('blog-content').value = '';
+        document.getElementById('blog-img').value = '';
+        document.getElementById('blog-preview').style.display = 'none';
+        document.getElementById('blog-upload-label').textContent = 'Click to upload cover image';
+
+        loadBlogs();
+        loadOverview();
+      } catch (e) {
+        toast('Error: ' + e.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
     // ─────────── DELETE ───────────
     function attachDeleteListeners(container, reloadFn) {
       container.querySelectorAll('[data-col]').forEach(btn => {
@@ -960,8 +1139,6 @@ Delete
           const { key, col } = btn.dataset;
           try {
             await remove(dbRef(db, `${col}/${key}`));
-            // Note: Cloudinary image delete requires server-side API key
-            // Image টা Cloudinary তে থাকবে কিন্তু DB থেকে reference উঠে যাবে
             toast('Deleted successfully.');
             await reloadFn();
             await loadOverview();
