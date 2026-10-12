@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>/* clean URL: hide .html */try{if(/\.html$/.test(location.pathname)){history.replaceState(null,"",location.pathname.replace(/index\.html$/,"").replace(/skills\.html$/,"skill").replace(/\.html$/,"")+location.search+location.hash)}}catch(e){}</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -252,6 +253,21 @@
     @keyframes tblink { 50% { opacity: 0; } }
     .typed-text { display: inline; }
 
+    /* ── ACHIEVEMENTS ── */
+    #achievements { display: none; padding-top: 2rem; }
+    #achievements.has-items { display: block; }
+    .ach-card { display: flex; flex-direction: column; padding: 0; }
+    .ach-img { width: 100%; height: 220px; object-fit: cover; border-bottom: 1px solid var(--card-border); cursor: zoom-in; transition: opacity .2s; display: block; }
+    .ach-img:hover { opacity: .85; }
+    .ach-body { padding: 1.3rem 1.5rem 1.5rem; display: flex; flex-direction: column; gap: .5rem; flex: 1; }
+    .ach-badge { align-self: flex-start; font-size: .68rem; letter-spacing: 1px; color: var(--amber); border: 1px solid rgba(255,170,0,.4); padding: .1rem .5rem; border-radius: 2px; }
+    .ach-card h3 { margin-bottom: 0; }
+    .ach-meta { color: var(--text-muted); font-size: .75rem; }
+    .ach-desc { color: #d0e8d0; font-size: .85rem; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+    .ach-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.95); z-index: 600; align-items: center; justify-content: center; }
+    .ach-lightbox.open { display: flex; }
+    .ach-lightbox img { max-width: 90vw; max-height: 85vh; border: 1px solid var(--green); border-radius: 4px; }
+
     /* ── DESKTOP ── */
     @media (min-width: 961px) {
       #hero { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
@@ -278,26 +294,26 @@
 <body>
   <canvas id="matrix-canvas"></canvas>
   <nav>
-    <a href="index.html" class="nav-logo">&lt;<span> 4l 4M1n </span>/&gt;</a>
+    <a href="/" class="nav-logo">&lt;<span> 4l 4M1n </span>/&gt;</a>
     <ul class="nav-links">
-      <li><a href="index.html" class="active">Home</a></li>
-      <li><a href="skills.html">Skills</a></li>
-      <li><a href="projects.html">Tools</a></li>
-      <li><a href="certificates.html">Certificates</a></li>
-      <li><a href="blog.html">Blog</a></li>
-      <li><a href="about.html">About</a></li>
+      <li><a href="/" class="active">Home</a></li>
+      <li><a href="./skill">Skills</a></li>
+      <li><a href="./tools">Tools</a></li>
+      <li><a href="./certificates">Certificates</a></li>
+      <li><a href="./blog">Blog</a></li>
+      <li><a href="./about">About</a></li>
     </ul>
     <button class="hamburger" id="hamburger" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
   </nav>
   <div class="mobile-menu" id="mobile-menu">
-    <a href="index.html">Home</a>
-    <a href="skills.html">Skills</a>
-    <a href="projects.html">Tools</a>
-    <a href="certificates.html">Certificates</a>
-    <a href="blog.html">Blog</a>
-    <a href="about.html">About</a>
+    <a href="/">Home</a>
+    <a href="./skill">Skills</a>
+    <a href="./tools">Tools</a>
+    <a href="./certificates">Certificates</a>
+    <a href="./blog">Blog</a>
+    <a href="./about">About</a>
   </div>
 
   <div class="site-wrapper">
@@ -317,23 +333,23 @@
           and researching different types of vulnerabilities found in modern web applications.
         </p>
         <div class="hero-btns">
-          <a href="projects.html" class="btn">View Tools</a>
-          <a href="about.html" class="btn" style="border-color:var(--cyan);color:var(--cyan)">About Me</a>
+          <a href="/projects" class="btn">View Tools</a>
+          <a href="/about" class="btn" style="border-color:var(--cyan);color:var(--cyan)">About Me</a>
         </div>
         <div class="hero-stats">
-          <a href="projects.html" class="stat-item">
+          <a href="/projects" class="stat-item">
             <div class="stat-num" id="stat-projects">0</div>
             <div class="stat-label">TOOLS</div>
           </a>
-          <a href="skills.html" class="stat-item">
+          <a href="/skill" class="stat-item">
             <div class="stat-num" id="stat-skills">0</div>
             <div class="stat-label">SKILLS</div>
           </a>
-          <a href="certificates.html" class="stat-item">
+          <a href="/certificates" class="stat-item">
             <div class="stat-num" id="stat-certs">0</div>
             <div class="stat-label">CERTIFICATES</div>
           </a>
-          <a href="blog.html" class="stat-item">
+          <a href="/blog" class="stat-item">
             <div class="stat-num" id="stat-blogs">0</div>
             <div class="stat-label">BLOGS</div>
           </a>
@@ -353,8 +369,16 @@
         </div>
       </div>
     </section>
+
+    <!-- ACHIEVEMENTS (managed from admin dashboard) -->
+    <section id="achievements" aria-label="Achievements">
+      <h2 class="section-title">Achievements</h2>
+      <div class="section-divider"></div>
+      <div id="ach-container" class="grid-3"></div>
+    </section>
   </div>
 
+  <div class="ach-lightbox" id="ach-lightbox"><img id="ach-lb-img" src="" alt="Achievement"></div>
   <div class="scroll-hint" aria-hidden="true">▼ SCROLL</div>
   <div id="toast" role="status" aria-live="polite"></div>
 
@@ -395,6 +419,43 @@
       } catch(e) { console.warn('Stats:', e.message); }
     }
     loadStats();
+
+    // ── ACHIEVEMENTS ──
+    const escH = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    async function loadAchievements() {
+      try {
+        const snap = await get(ref(db, 'achievements'));
+        if (!snap.exists()) return;
+        const items = [];
+        snap.forEach(ch => { items.push(ch.val()); });
+        items.reverse();
+        const box = document.getElementById('ach-container');
+        box.innerHTML = '';
+        items.forEach(a => {
+          const card = document.createElement('div');
+          card.className = 'card ach-card';
+          const safeLink = /^https?:\/\//i.test(a.link || '') ? a.link : '';
+          card.innerHTML = `
+            ${a.imageUrl ? `<img class="ach-img" src="${escH(a.imageUrl)}" alt="${escH(a.title)}" loading="lazy">` : ''}
+            <div class="ach-body">
+              ${a.category ? `<span class="ach-badge">${escH(a.category)}</span>` : ''}
+              <h3>${escH(a.title)}</h3>
+              <div class="ach-meta">${[a.org, a.date].filter(Boolean).map(escH).join(' • ')}</div>
+              ${a.description ? `<div class="ach-desc">${escH(a.description)}</div>` : ''}
+              ${safeLink ? `<a href="${escH(safeLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="align-self:flex-start;margin-top:.5rem">View Proof</a>` : ''}
+            </div>`;
+          const img = card.querySelector('.ach-img');
+          if (img) img.addEventListener('click', () => {
+            document.getElementById('ach-lb-img').src = a.imageUrl;
+            document.getElementById('ach-lightbox').classList.add('open');
+          });
+          box.appendChild(card);
+        });
+        document.getElementById('achievements').classList.add('has-items');
+      } catch (e) { console.warn('Achievements:', e.message); }
+    }
+    loadAchievements();
+    document.getElementById('ach-lightbox').addEventListener('click', function () { this.classList.remove('open'); });
 
     const hamburger = document.getElementById('hamburger');
     const mobileMenu = document.getElementById('mobile-menu');
