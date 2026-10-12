@@ -1,1 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>/* clean URL: hide .html */try{if(/\.html$/.test(location.pathname)){history.replaceState(null,"",location.pathname.replace(/index\.html$/,"").replace(/skills\.html$/,"skill").replace(/\.html$/,"")+location.search+location.hash)}}catch(e){}</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="canonical" href="https://alamincyber.com/projects" />
+  <title>Tools</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <style>
+    .project-card {
+      display: flex;
+      flex-direction: column;
+    }
+    .project-img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 2px;
+      margin-bottom: 1rem;
+      border: 1px solid var(--card-border);
+    }
+    .project-img-placeholder {
+      width: 100%;
+      height: 160px;
+      background: var(--bg3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      margin-bottom: 1rem;
+      border: 1px solid var(--card-border);
+    }
+    .project-links {
+      display: flex;
+      gap: 0.6rem;
+      margin-top: auto;
+      padding-top: 1rem;
+      flex-wrap: wrap;
+    }
+    .project-tags {
+      display: flex;
+      flex-wrap: wrap;
+      margin: 0.5rem 0;
+    }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+    .modal {
+      background: #030d03;
+      border: 1px solid var(--green);
+      border-radius: 4px;
+      max-width: 600px;
+      width: 100%;
+      padding: 2rem;
+      position: relative;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    .modal-close:hover {
+      color: var(--red);
+    }
+    .modal h2 {
+      font-family: var(--font-head);
+      color: var(--cyan);
+      margin-bottom: 1rem;
+    }
+    .modal p {
+      color: var(--text-muted);
+      line-height: 1.8;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="matrix-canvas"></canvas>
 
+  <nav>
+    <a href="/" class="nav-logo">&lt;<span> 4l 4M1n </span>/&gt;</a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="./skill">Skills</a></li>
+      <li><a href="./tools" class="active">Tools</a></li>
+      <li><a href="./certificates">Certificates</a></li>
+      <li><a href="./blog">Blog</a></li>
+      <li><a href="./about">About</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="/">Home</a>
+    <a href="./skill">Skills</a>
+    <a href="./tools">Tools</a>
+    <a href="./certificates">Certificates</a>
+    <a href="./blog">Blog</a>
+    <a href="./about">About</a>
+  </div>
+
+  <div class="site-wrapper">
+    <section class="page-section">
+      <h1 class="section-title">Tools</h1>
+      <div class="section-divider"></div>
+      <div id="projects-container" class="grid-3">
+        <p class="loading">&gt; Fetching tools files...</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="project-modal">
+    <div class="modal">
+      <button class="modal-close" id="modal-close">✕</button>
+      <h2 id="modal-title"></h2>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { startMatrixRain } from '../assets/js/matrix.js';
+    import { db } from '../assets/js/firebase-config.js';
+    import { ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    startMatrixRain();
+
+    // ──────────────────────────────────────────────
+    // Modal helpers
+    // ──────────────────────────────────────────────
+    function showModal(name, about) {
+      document.getElementById('modal-title').textContent = name || '';
+      document.getElementById('modal-body').innerHTML =
+        `<p>${about || 'No additional details.'}</p>`;
+      document.getElementById('project-modal').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('project-modal').classList.remove('open');
+    }
+
+    document.getElementById('modal-close').addEventListener('click', closeModal);
+    document.getElementById('project-modal').addEventListener('click', function (e) {
+      if (e.target === this) closeModal();
+    });
+
+    // ──────────────────────────────────────────────
+    // Load projects from Firebase
+    // ──────────────────────────────────────────────
+    async function loadProjects() {
+      const container = document.getElementById('projects-container');
+
+      try {
+        const snap = await get(ref(db, 'projects'));
+
+        // Debug: browser console-এ দেখুন
+        console.log('Firebase snapshot exists:', snap.exists());
+        console.log('Firebase snapshot size:', snap.size);
+        console.log('Firebase raw data:', snap.val());
+
+        if (!snap.exists()) {
+          container.innerHTML =
+            '<div class="empty-state" style="grid-column:1/-1">&gt; No projects yet. Add via admin dashboard.</div>';
+          return;
+        }
+
+        // Collect all children into an array
+        const items = [];
+        snap.forEach(child => {
+          const val = child.val();
+          if (val && typeof val === 'object') {
+            items.push({ key: child.key, ...val });
+          }
+        });
+
+        console.log('Total items loaded:', items.length);
+
+        if (items.length === 0) {
+          container.innerHTML =
+            '<div class="empty-state" style="grid-column:1/-1">&gt; No tools found in database.</div>';
+          return;
+        }
+
+        // Newest first
+        items.reverse();
+
+        container.innerHTML = '';
+
+        items.forEach(d => {
+          const name  = d.name  || 'Untitled';
+          const about = d.about || '';
+          const tags  = Array.isArray(d.tags)
+            ? d.tags.map(t => `<span class="tag">${t}</span>`).join('')
+            : '';
+
+          const card = document.createElement('div');
+          card.className = 'card project-card';
+
+          // Build image HTML
+          const imgHtml = d.imageUrl
+            ? `<img src="${d.imageUrl}" class="project-img" alt="${name}" onerror="this.style.display='none'">`
+            : `<div class="project-img-placeholder">// PROJECT IMAGE</div>`;
+
+          // Build link buttons HTML
+          const liveBtn = d.liveUrl
+            ? `<a href="${d.liveUrl}" target="_blank" class="btn btn-sm" style="border-color:var(--cyan);color:var(--cyan)">Live</a>`
+            : '';
+          const githubBtn = d.githubUrl
+            ? `<a href="${d.githubUrl}" target="_blank" class="btn btn-sm" style="border-color:var(--amber);color:var(--amber)">GitHub</a>`
+            : '';
+
+          // Preview text (first 120 chars)
+          const preview = about.length > 120
+            ? about.substring(0, 120) + '...'
+            : about;
+
+          card.innerHTML = `
+            ${imgHtml}
+            <h3>${name}</h3>
+            <p>${preview}</p>
+            <div class="project-tags">${tags}</div>
+            <div class="project-links">
+              <button class="btn btn-sm details-btn">Details</button>
+              ${liveBtn}
+              ${githubBtn}
+            </div>
+          `;
+
+          // ✅ Event listener ব্যবহার করুন — inline onclick নয়
+          // এটাই মূল fix: backtick/quote থাকলেও safe
+          card.querySelector('.details-btn').addEventListener('click', () => {
+            showModal(name, about);
+          });
+
+          container.appendChild(card);
+        });
+
+      } catch (e) {
+        console.error('Firebase load error:', e);
+        container.innerHTML =
+          `<div class="empty-state" style="grid-column:1/-1">&gt; Error: ${e.message}</div>`;
+      }
+    }
+
+    loadProjects();
+
+    // ──────────────────────────────────────────────
+    // Mobile menu
+    // ──────────────────────────────────────────────
+    const hamburger  = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    hamburger.addEventListener('click', () => {
+      mobileMenu.classList.toggle('open');
+    });
+
+    mobileMenu.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => mobileMenu.classList.remove('open'));
+    });
+  </script>
+
+  <footer class="site-footer">
+    &lt;<span>&copy; 2025-2026 Al Amin. All Rights Reserved</span>&gt;
+    <div class="footer-copy">Cybersecurity Enthusiast | Bug Hunter | Future Red Teamer</div>
+  </footer>
+</body>
+</html>
