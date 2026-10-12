@@ -1,1 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>/* clean URL: hide .html */try{if(/\.html$/.test(location.pathname)){history.replaceState(null,"",location.pathname.replace(/index\.html$/,"").replace(/skills\.html$/,"skill").replace(/\.html$/,"")+location.search+location.hash)}}catch(e){}</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="canonical" href="https://alamincyber.com/About" />
+  <title>About </title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <style>
+    .about-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 3rem;
+      align-items: start;
+    }
+    @media (max-width: 768px) {
+      .about-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+    }
 
+    .profile-card {
+      text-align: center;
+      
+    }
+    .profile-img-wrap {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 1.5rem;
+    }
+    .profile-img {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--green);
+      box-shadow: 0 0 30px rgba(0,255,65,0.2);
+    }
+    .profile-img-placeholder {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      border: 2px solid var(--green);
+      background: var(--card-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-head);
+      font-size: 3rem;
+      color: var(--green);
+      box-shadow: 0 0 30px rgba(0,255,65,0.2);
+    }
+    .profile-ring {
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,255,65,0.2);
+      animation: spin 12s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .profile-name {
+      font-family: var(--font-head);
+      color: var(--green);
+      font-size: 1.2rem;
+      margin-bottom: 0.3rem;
+    }
+    .profile-title {
+      color: var(--cyan);
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+    .contact-list { list-style: none; text-align: left; }
+    .contact-list li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 0.75rem;
+    }
+    .contact-list li .label { color: var(--green); min-width: 60px; }
+
+    .about-content h2 {
+      font-family: var(--font-head);
+      color: var(--cyan);
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      letter-spacing: 2px;
+    }
+    .about-content p {
+      color: var(--text-muted);
+      line-height: 1.9;
+      font-size: 0.92rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 480px) { .info-grid { grid-template-columns: 1fr; } }
+    .info-item {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 0.8rem 1rem;
+      border-radius: 2px;
+    }
+    .info-item .key { color: var(--text-muted); font-size: 0.75rem; letter-spacing: 1px; margin-bottom: 0.2rem; }
+    .info-item .val { color: var(--green); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <canvas id="matrix-canvas"></canvas>
+  <nav>
+    <a href="/" class="nav-logo">&lt;<span> 4l 4M1n </span>/&gt;</a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/skill">Skills</a></li>
+      <li><a href="/tools">Tools</a></li>
+      <li><a href="/certificates">Certificates</a></li>
+      <li><a href="/blog">Blog</a></li>
+      <li><a href="/about" class="active">About</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  </nav>
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="/">Home</a><a href="/skill">Skills</a>
+    <a href="/tools">Tools</a><a href="/certificates">Certificates</a>
+    <a href="/blog">Blog</a><a href="/about">About</a>
+  </div>
+
+  <div class="site-wrapper">
+    <section class="page-section">
+      <h1 class="section-title">About Me</h1>
+      <div class="section-divider"></div>
+
+      <div class="about-grid">
+        <div class="profile-card card">
+          <div class="profile-img-wrap">
+            <!-- Replace src with your actual photo -->
+            <img src="../profile.jpg" alt="Profile" class="profile-img"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="profile-img-placeholder" style="display:none">YN</div>
+            <div class="profile-ring"></div>
+          </div>
+          <div class="profile-name">Al Amin </div>
+          <div class="profile-title">// ETHICAL HACKER </div>
+          <ul class="contact-list">
+            <li><span class="label">Email:</span> alamin.bd.dev@gmail.com</li>
+            <li><span class="label">Phone:</span> +966 050 820 4963</li>
+            <li><span class="label">City:</span> DHAKA BANGLADESH </li>
+            <li><span class="label">Status:</span> <span style="color:var(--green)">Available</span></li>
+          </ul>
+          <div style="margin-top:1.2rem; display:flex; gap:0.6rem; justify-content:center; flex-wrap:wrap;">
+            <a href="https://github.com/alamincyber" class="btn btn-sm">GitHub</a>
+            <a href="https://www.linkedin.com/in/alamincyber" class="btn btn-sm" style="border-color:var(--cyan);color:var(--cyan)">LinkedIn</a>
+            <a href="https://www.facebook.com/alamincyber1" class="btn btn-sm" style="border-color:var(--amber);color:var(--amber)">Facebook</a>
+            <a href="https://www.fiverr.com/alamincyber" class="btn btn-sm" style="border-color:var(--cyan);color:var(--cyan)">Fiverr</a>
+          </div>
+        </div>
+
+        <div class="about-content">
+          <h2>// WHO AM I?</h2>
+         <p>
+            Hello! I'm <strong style="color:var(--green)">Al Amin</strong>, I am a passionate Cyber Security learner with a strong interest in Web Security, Bug Hunting, and Red Teaming.
+           I enjoy exploring how web applications work, identifying vulnerabilities, 
+           and understanding how attackers think so systems can be better protected.
+           I spend my time learning security concepts, practicing ethical hacking techniques,
+           and researching different types of vulnerabilities found in modern web applications.
+          </p>
+          
+           <h4> Mission </h4>
+           <p>
+           My mission is to continuously improve my cybersecurity knowledge and contribute to making the internet safer. 
+           I focus on discovering security weaknesses and responsibly reporting them so organizations can fix them before attackers exploit them.
+ 
+          </p>
+
+           <h4>What I Do</h4>
+           <p>
+           Web Application Security Testing.
+           Vulnerability Research.
+           Bug Hunting.
+           Learning Red Team Techniques.
+           Studying Web Exploitation Methods.
+          </p>
+          
+           <h4>My Skills</h4>
+           <p>
+
+           Python Basics.
+           Web Security Fundamentals.
+           Vulnerability Analysis.
+           Learning Red Team Techniques.
+           Reconnaissance Techniques.
+          </p>
+           
+           <h4>My Goal</h4>
+           <p>
+           My goal is to become a professional Bug Hunter and Red Team Security Specialist.
+           I want to work on real-world security challenges, discover impactful vulnerabilities, and help organizations strengthen their security infrastructure.
+          </p>
+
+          <h2 style="margin-top:2rem">// QUICK FACTS</h2>
+          <div class="info-grid">
+            <div class="info-item"><div class="key">BIRTHDAY</div><div class="val">21 FEBRUARY</div></div>
+            <div class="info-item"><div class="key">TERGET</div><div class="val">Red Timing</div></div>
+            <div class="info-item"><div class="key">FREELANCE</div><div class="val" style="color:var(--green)">Available</div></div>
+            <div class="info-item"><div class="key">EXPERIENCE</div><div class="val">Learning</div></div>
+            <div class="info-item"><div class="key">LOCATION</div><div class="val">Tangail, Dhaka, Bangladesh</div></div>
+            <div class="info-item"><div class="key">LANGUAGES</div><div class="val">Bangla, English</div></div>
+          </div>
+
+          <a href="/tools" class="btn">View My Tools</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script type="module">
+    import { startMatrixRain } from '../assets/js/matrix.js';
+    startMatrixRain();
+    document.getElementById('hamburger').addEventListener('click', () => {
+      document.getElementById('mobile-menu').classList.toggle('open');
+    });
+  </script>
+
+  <footer class="site-footer">
+    &lt;<span>&copy; 2025-2026 Al Amin. All Rights Reserved</span>&gt;
+    <div class="footer-copy">Cybersecurity Enthusiast | Bug Hunter | Future Red Teamer</div>
+  </footer>
+
+</body>
+</html>
