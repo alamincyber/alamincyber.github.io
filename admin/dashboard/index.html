@@ -612,7 +612,7 @@
 
     // ── SECURE AUTH GUARD ──
     onAuthStateChanged(auth, user => {
-      if (!user) { window.location.replace('/Admin/Login'); return; }
+      if (!user) { window.location.replace('/admin/login'); return; }
       document.body.classList.add('auth-ready');
       document.getElementById('auth-gate').classList.add('hidden');
       document.getElementById('user-email').textContent = user.email;
@@ -621,7 +621,7 @@
 
     document.getElementById('logout-btn').addEventListener('click', async () => {
       await signOut(auth);
-      window.location.replace('/Admin/Login');
+      window.location.replace('/admin/login');
     });
 
     // ── TOAST ──
