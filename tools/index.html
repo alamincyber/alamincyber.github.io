@@ -4,15 +4,15 @@
   <script>/* clean URL: hide .html */try{if(/\.html$/.test(location.pathname)){history.replaceState(null,"",location.pathname.replace(/index\.html$/,"").replace(/skills\.html$/,"skill").replace(/\.html$/,"")+location.search+location.hash)}}catch(e){}</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="canonical" href="https://alamincyber.com/projects" />
+  <link rel="canonical" href="https://alamincyber.com/tools" />
   <title>Tools</title>
   <link rel="stylesheet" href="../assets/css/style.css" />
   <style>
-    .project-card {
+    .tool-card {
       display: flex;
       flex-direction: column;
     }
-    .project-img {
+    .tool-img {
       width: 100%;
       height: 160px;
       object-fit: cover;
@@ -20,7 +20,7 @@
       margin-bottom: 1rem;
       border: 1px solid var(--card-border);
     }
-    .project-img-placeholder {
+    .tool-img-placeholder {
       width: 100%;
       height: 160px;
       background: var(--bg3);
@@ -33,14 +33,14 @@
       margin-bottom: 1rem;
       border: 1px solid var(--card-border);
     }
-    .project-links {
+    .tool-links {
       display: flex;
       gap: 0.6rem;
       margin-top: auto;
       padding-top: 1rem;
       flex-wrap: wrap;
     }
-    .project-tags {
+    .tool-tags {
       display: flex;
       flex-wrap: wrap;
       margin: 0.5rem 0;
@@ -125,14 +125,14 @@
     <section class="page-section">
       <h1 class="section-title">Tools</h1>
       <div class="section-divider"></div>
-      <div id="projects-container" class="grid-3">
+      <div id="tools-container" class="grid-3">
         <p class="loading">&gt; Fetching tools files...</p>
       </div>
     </section>
   </div>
 
   <!-- Modal -->
-  <div class="modal-overlay" id="project-modal">
+  <div class="modal-overlay" id="tool-modal">
     <div class="modal">
       <button class="modal-close" id="modal-close">✕</button>
       <h2 id="modal-title"></h2>
@@ -147,6 +147,9 @@
 
     startMatrixRain();
 
+    // Firebase node name for tools (existing data stays under 'projects')
+    const TOOLS_PATH = 'projects';
+
     // ──────────────────────────────────────────────
     // Modal helpers
     // ──────────────────────────────────────────────
@@ -154,26 +157,26 @@
       document.getElementById('modal-title').textContent = name || '';
       document.getElementById('modal-body').innerHTML =
         `<p>${about || 'No additional details.'}</p>`;
-      document.getElementById('project-modal').classList.add('open');
+      document.getElementById('tool-modal').classList.add('open');
     }
 
     function closeModal() {
-      document.getElementById('project-modal').classList.remove('open');
+      document.getElementById('tool-modal').classList.remove('open');
     }
 
     document.getElementById('modal-close').addEventListener('click', closeModal);
-    document.getElementById('project-modal').addEventListener('click', function (e) {
+    document.getElementById('tool-modal').addEventListener('click', function (e) {
       if (e.target === this) closeModal();
     });
 
     // ──────────────────────────────────────────────
-    // Load projects from Firebase
+    // Load tools from Firebase
     // ──────────────────────────────────────────────
-    async function loadProjects() {
-      const container = document.getElementById('projects-container');
+    async function loadTools() {
+      const container = document.getElementById('tools-container');
 
       try {
-        const snap = await get(ref(db, 'projects'));
+        const snap = await get(ref(db, TOOLS_PATH));
 
         // Debug: browser console-এ দেখুন
         console.log('Firebase snapshot exists:', snap.exists());
@@ -182,7 +185,7 @@
 
         if (!snap.exists()) {
           container.innerHTML =
-            '<div class="empty-state" style="grid-column:1/-1">&gt; No projects yet. Add via admin dashboard.</div>';
+            '<div class="empty-state" style="grid-column:1/-1">&gt; No tools yet. Add via admin dashboard.</div>';
           return;
         }
 
@@ -216,12 +219,12 @@
             : '';
 
           const card = document.createElement('div');
-          card.className = 'card project-card';
+          card.className = 'card tool-card';
 
           // Build image HTML
           const imgHtml = d.imageUrl
-            ? `<img src="${d.imageUrl}" class="project-img" alt="${name}" onerror="this.style.display='none'">`
-            : `<div class="project-img-placeholder">// PROJECT IMAGE</div>`;
+            ? `<img src="${d.imageUrl}" class="tool-img" alt="${name}" onerror="this.style.display='none'">`
+            : `<div class="tool-img-placeholder">// TOOL IMAGE</div>`;
 
           // Build link buttons HTML
           const liveBtn = d.liveUrl
@@ -240,8 +243,8 @@
             ${imgHtml}
             <h3>${name}</h3>
             <p>${preview}</p>
-            <div class="project-tags">${tags}</div>
-            <div class="project-links">
+            <div class="tool-tags">${tags}</div>
+            <div class="tool-links">
               <button class="btn btn-sm details-btn">Details</button>
               ${liveBtn}
               ${githubBtn}
@@ -264,7 +267,7 @@
       }
     }
 
-    loadProjects();
+    loadTools();
 
     // ──────────────────────────────────────────────
     // Mobile menu
