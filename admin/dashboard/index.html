@@ -383,7 +383,7 @@
       <div class="panel active" id="panel-overview">
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="num" id="ov-projects">-</div>
+            <div class="num" id="ov-tools">-</div>
             <div class="lbl">TOOLS</div>
           </div>
           <div class="stat-card">
@@ -414,13 +414,13 @@
         </div>
       </div>
 
-      <!-- PROJECTS -->
-      <div class="panel" id="panel-projects">
+      <!-- TOOLS -->
+      <div class="panel" id="panel-tools">
         <div class="form-card">
-          <h3>// ADD NEW TOOLS</h3>
+          <h3>// ADD NEW TOOL</h3>
           <div class="form-row">
-            <div class="input-group"><label>TOOLS NAME *</label><input type="text" id="proj-name"
-                placeholder="My Awesome Project" /></div>
+            <div class="input-group"><label>TOOL NAME *</label><input type="text" id="proj-name"
+                placeholder="My Awesome Tool" /></div>
             <div class="input-group"><label>LIVE URL</label><input type="url" id="proj-live"
                 placeholder="https://..." /></div>
           </div>
@@ -430,10 +430,10 @@
             <div class="input-group"><label>TAGS (comma separated)</label><input type="text" id="proj-tags"
                 placeholder="React, Firebase, CSS" /></div>
           </div>
-          <div class="input-group"><label>TOOLS ABOUT</label><textarea id="proj-about"
-              placeholder="Describe your project..."></textarea></div>
+          <div class="input-group"><label>ABOUT THIS TOOL</label><textarea id="proj-about"
+              placeholder="Describe your tool..."></textarea></div>
           <div class="input-group">
-            <label>TOOLS IMAGE</label>
+            <label>TOOL IMAGE</label>
             <div class="upload-area" id="proj-upload-area">
               <input type="file" id="proj-img" accept="image/*" style="display:none" />
               <div id="proj-upload-label">Click to upload image</div>
@@ -443,12 +443,12 @@
               <div class="progress-bar" id="proj-bar"></div>
             </div>
           </div>
-          <button class="btn" id="add-project-btn">[ ADD TOOLS ]</button>
+          <button class="btn" id="add-tool-btn">[ ADD TOOL ]</button>
         </div>
         <h3
           style="font-family:var(--font-head);color:var(--cyan);font-size:0.9rem;margin-bottom:1rem;letter-spacing:1px">
-          // EXISTING PROJECTS</h3>
-        <div id="projects-list">
+          // EXISTING TOOLS</h3>
+        <div id="tools-list">
           <p class="loading">&gt; Loading...</p>
         </div>
       </div>
@@ -607,12 +607,14 @@
     // ── CLOUDINARY CONFIG ──
     const CLOUDINARY_CLOUD = 'dchwxrivr';
     const CLOUDINARY_PRESET = 'portfolio_upload';
+    // Firebase node name for tools (existing data stays under 'projects')
+    const TOOLS_PATH = 'projects';
 
     startMatrixRain();
 
     // ── SECURE AUTH GUARD ──
     onAuthStateChanged(auth, user => {
-      if (!user) { window.location.replace('../../admin/login'); return; }
+      if (!user) { window.location.replace('/Admin/Login'); return; }
       document.body.classList.add('auth-ready');
       document.getElementById('auth-gate').classList.add('hidden');
       document.getElementById('user-email').textContent = user.email;
@@ -621,7 +623,7 @@
 
     document.getElementById('logout-btn').addEventListener('click', async () => {
       await signOut(auth);
-      window.location.replace('../../admin/login');
+      window.location.replace('/Admin/Login');
     });
 
     // ── TOAST ──
@@ -704,17 +706,17 @@
 
     // ── LOAD ALL ──
     async function loadAll() {
-      await Promise.all([loadOverview(), loadProjects(), loadSkills(), loadCerts(), loadBlogs(), loadAchievements()]);
+      await Promise.all([loadOverview(), loadTools(), loadSkills(), loadCerts(), loadBlogs(), loadAchievements()]);
     }
 
     // ── OVERVIEW ──
     async function loadOverview() {
       try {
         const [p, s, c, b, a] = await Promise.all([
-          get(dbRef(db, 'projects')), get(dbRef(db, 'skills')),
+          get(dbRef(db, TOOLS_PATH)), get(dbRef(db, 'skills')),
           get(dbRef(db, 'certificates')), get(dbRef(db, 'blogs')), get(dbRef(db, 'achievements'))
         ]);
-        document.getElementById('ov-projects').textContent = p.exists() ? Object.keys(p.val()).length : 0;
+        document.getElementById('ov-tools').textContent = p.exists() ? Object.keys(p.val()).length : 0;
         document.getElementById('ov-skills').textContent = s.exists() ? Object.keys(s.val()).length : 0;
         document.getElementById('ov-certs').textContent = c.exists() ? Object.keys(c.val()).length : 0;
         document.getElementById('ov-blogs').textContent = b.exists() ? Object.keys(b.val()).length : 0;
@@ -725,19 +727,19 @@
       }
     }
 
-    // ─────────── PROJECTS ───────────
-    async function loadProjects() {
+    // ─────────── TOOLS ───────────
+    async function loadTools() {
 
-      const list = document.getElementById("projects-list")
+      const list = document.getElementById("tools-list")
 
       try {
 
-        const snap = await get(dbRef(db, "projects"))
+        const snap = await get(dbRef(db, TOOLS_PATH))
 
         list.innerHTML = ""
 
         if (!snap.exists()) {
-          list.innerHTML = "> No projects"
+          list.innerHTML = "> No tools"
           return
         }
 
@@ -767,7 +769,7 @@ ${d.imageUrl ? `<img src="${d.imageUrl}" class="list-item-img">` : ""}
 
 </div>
 
-<button class="btn btn-sm btn-danger delete-project" data-key="${key}">
+<button class="btn btn-sm btn-danger delete-tool" data-key="${key}">
 Delete
 </button>
 
@@ -777,19 +779,19 @@ Delete
 
         })
 
-        document.querySelectorAll(".delete-project").forEach(btn => {
+        document.querySelectorAll(".delete-tool").forEach(btn => {
 
           btn.onclick = async function () {
 
             const key = this.dataset.key
 
-            if (confirm("Delete project?")) {
+            if (confirm("Delete tool?")) {
 
-              await remove(dbRef(db, "projects/" + key))
+              await remove(dbRef(db, TOOLS_PATH + "/" + key))
 
-              toast("Project deleted")
+              toast("Tool deleted")
 
-              loadProjects()
+              loadTools()
               loadOverview()
 
             }
@@ -1008,8 +1010,8 @@ Delete
 
     }
 
-    // ─────────── ADD PROJECT ───────────
-    document.getElementById('add-project-btn').addEventListener('click', async () => {
+    // ─────────── ADD TOOL ───────────
+    document.getElementById('add-tool-btn').addEventListener('click', async () => {
       const name = document.getElementById('proj-name').value.trim();
       const live = document.getElementById('proj-live').value.trim();
       const github = document.getElementById('proj-github').value.trim();
@@ -1017,18 +1019,18 @@ Delete
       const about = document.getElementById('proj-about').value.trim();
       const imgFile = document.getElementById('proj-img').files[0];
 
-      if (!name) { toast('Tools name is required', 'error'); return; }
+      if (!name) { toast('Tool name is required', 'error'); return; }
 
-      const btn = document.getElementById('add-Tool-btn');
+      const btn = document.getElementById('add-tool-btn');
       btn.disabled = true;
 
       try {
         let imageUrl = '';
         if (imgFile) {
-          imageUrl = await uploadFile(imgFile, 'projects', 'proj-bar', 'proj-progress');
+          imageUrl = await uploadFile(imgFile, 'tools', 'proj-bar', 'proj-progress');
         }
 
-        await push(dbRef(db, 'projects'), {
+        await push(dbRef(db, TOOLS_PATH), {
           name,
           liveUrl: live,
           githubUrl: github,
@@ -1050,7 +1052,7 @@ Delete
         document.getElementById('proj-preview').style.display = 'none';
         document.getElementById('proj-upload-label').textContent = 'Click to upload image';
 
-        loadProjects();
+        loadTools();
         loadOverview();
       } catch (e) {
         toast('Error: ' + e.message, 'error');
