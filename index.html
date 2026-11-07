@@ -74,10 +74,16 @@
   }
   </script>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://mywebsite-c2d4a-default-rtdb.firebaseio.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap">
   <link rel="stylesheet" href="assets/css/style.css" />
   <style>
     #hero {
+      /* min() cap: mobile "Desktop site" mode e 100vh ~2000px hoye jay, tai upper limit dilam */
       min-height: 100vh;
+      min-height: min(100vh, 760px);
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 3rem;
@@ -255,7 +261,7 @@
 
     /* ── ACHIEVEMENTS ── */
     #achievements { display: none; padding-top: 2rem; }
-    #achievements.has-items { display: block; }
+    #achievements.has-items, #achievements.is-loading { display: block; }
     .ach-card { display: flex; flex-direction: column; padding: 0; }
     .ach-img { width: 100%; height: 220px; object-fit: cover; border-bottom: 1px solid var(--card-border); cursor: zoom-in; transition: opacity .2s; display: block; }
     .ach-img:hover { opacity: .85; }
@@ -338,19 +344,19 @@
         </div>
         <div class="hero-stats">
           <a href="/tools" class="stat-item">
-            <div class="stat-num" id="stat-projects">0</div>
+            <div class="stat-num is-loading" id="stat-projects">--</div>
             <div class="stat-label">TOOLS</div>
           </a>
           <a href="/skill" class="stat-item">
-            <div class="stat-num" id="stat-skills">0</div>
+            <div class="stat-num is-loading" id="stat-skills">--</div>
             <div class="stat-label">SKILLS</div>
           </a>
           <a href="/certificates" class="stat-item">
-            <div class="stat-num" id="stat-certs">0</div>
+            <div class="stat-num is-loading" id="stat-certs">--</div>
             <div class="stat-label">CERTIFICATES</div>
           </a>
           <a href="/blog" class="stat-item">
-            <div class="stat-num" id="stat-blogs">0</div>
+            <div class="stat-num is-loading" id="stat-blogs">--</div>
             <div class="stat-label">BLOGS</div>
           </a>
         </div>
@@ -374,7 +380,7 @@
     <section id="achievements" aria-label="Achievements">
       <h2 class="section-title">Achievements</h2>
       <div class="section-divider"></div>
-      <div id="ach-container" class="grid-3"></div>
+      <div id="ach-container" class="grid-3"><p class="loading" role="status"><span class="spinner" aria-hidden="true"></span>&gt; Loading achievements...</p><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div></div>
     </section>
   </div>
 
@@ -384,8 +390,7 @@
 
   <script type="module">
     import { startMatrixRain, typeWriter } from './assets/js/matrix.js';
-    import { db } from './assets/js/firebase-config.js';
-    import { ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { loadNode, loadCount, toList } from './assets/js/db-fast.js';
 
     startMatrixRain();
 
@@ -398,61 +403,64 @@
     }
     nextRole();
 
-    function animateCount(id, target) {
+    function animateCount(id, target, instant) {
       const el = document.getElementById(id);
+      el.classList.remove('is-loading');
+      if (instant || target <= 0) { el.textContent = target; return; }
       let c = 0; const step = Math.ceil(target / 30) || 1;
       const iv = setInterval(() => { c = Math.min(c + step, target); el.textContent = c; if (c >= target) clearInterval(iv); }, 40);
     }
 
-    async function loadStats() {
-      try {
-        const [p, s, c, b] = await Promise.all([
-          get(ref(db,'projects')), 
-          get(ref(db,'skills')), 
-          get(ref(db,'certificates')), 
-          get(ref(db,'blogs'))
-        ]);
-        animateCount('stat-projects', p.exists() ? Object.keys(p.val()).length : 0);
-        animateCount('stat-skills',   s.exists() ? Object.keys(s.val()).length : 0);
-        animateCount('stat-certs',    c.exists() ? Object.keys(c.val()).length : 0);
-        animateCount('stat-blogs',    b.exists() ? Object.keys(b.val()).length : 0); 
-      } catch(e) { console.warn('Stats:', e.message); }
-    }
-    loadStats();
+    // 4 ta count ek sathe, shudhu key (shallow) — pura data download hoy na
+    [['projects','stat-projects'], ['skills','stat-skills'], ['certificates','stat-certs'], ['blogs','stat-blogs']]
+      .forEach(([path, id]) => loadCount(path, (n, fromCache) => animateCount(id, n, fromCache)));
 
     // ── ACHIEVEMENTS ──
     const escH = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    async function loadAchievements() {
-      try {
-        const snap = await get(ref(db, 'achievements'));
-        if (!snap.exists()) return;
-        const items = [];
-        snap.forEach(ch => { items.push(ch.val()); });
-        items.reverse();
-        const box = document.getElementById('ach-container');
-        box.innerHTML = '';
-        items.forEach(a => {
-          const card = document.createElement('div');
-          card.className = 'card ach-card';
-          const safeLink = /^https?:\/\//i.test(a.link || '') ? a.link : '';
-          card.innerHTML = `
-            ${a.imageUrl ? `<img class="ach-img" src="${escH(a.imageUrl)}" alt="${escH(a.title)}" loading="lazy">` : ''}
-            <div class="ach-body">
-              ${a.category ? `<span class="ach-badge">${escH(a.category)}</span>` : ''}
-              <h3>${escH(a.title)}</h3>
-              <div class="ach-meta">${[a.org, a.date].filter(Boolean).map(escH).join(' • ')}</div>
-              ${a.description ? `<div class="ach-desc">${escH(a.description)}</div>` : ''}
-              ${safeLink ? `<a href="${escH(safeLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="align-self:flex-start;margin-top:.5rem">View Proof</a>` : ''}
-            </div>`;
-          const img = card.querySelector('.ach-img');
-          if (img) img.addEventListener('click', () => {
-            document.getElementById('ach-lb-img').src = a.imageUrl;
-            document.getElementById('ach-lightbox').classList.add('open');
-          });
-          box.appendChild(card);
+    const achSection = document.getElementById('achievements');
+    // cache e age thekei jana thakle (0 ta) loading section dekhai na
+    try {
+      const c = JSON.parse(localStorage.getItem('alc:v1:achievements') || 'null');
+      const empty = c && (!c.v || !Object.keys(c.v).length);
+      if (!empty) achSection.classList.add('is-loading');
+    } catch (e) { achSection.classList.add('is-loading'); }
+
+    function renderAchievements(data) {
+      const items = toList(data);
+      const box = document.getElementById('ach-container');
+      achSection.classList.remove('is-loading');
+      if (!items.length) { achSection.classList.remove('has-items'); return; }
+      items.reverse();
+      box.innerHTML = '';
+      items.forEach(a => {
+        const card = document.createElement('div');
+        card.className = 'card ach-card';
+        const safeLink = /^https?:\/\//i.test(a.link || '') ? a.link : '';
+        card.innerHTML = `
+          ${a.imageUrl ? `<img class="ach-img" src="${escH(a.imageUrl)}" alt="${escH(a.title)}" loading="lazy" decoding="async">` : ''}
+          <div class="ach-body">
+            ${a.category ? `<span class="ach-badge">${escH(a.category)}</span>` : ''}
+            <h3>${escH(a.title)}</h3>
+            <div class="ach-meta">${[a.org, a.date].filter(Boolean).map(escH).join(' • ')}</div>
+            ${a.description ? `<div class="ach-desc">${escH(a.description)}</div>` : ''}
+            ${safeLink ? `<a href="${escH(safeLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="align-self:flex-start;margin-top:.5rem">View Proof</a>` : ''}
+          </div>`;
+        const img = card.querySelector('.ach-img');
+        if (img) img.addEventListener('click', () => {
+          document.getElementById('ach-lb-img').src = a.imageUrl;
+          document.getElementById('ach-lightbox').classList.add('open');
         });
-        document.getElementById('achievements').classList.add('has-items');
-      } catch (e) { console.warn('Achievements:', e.message); }
+        box.appendChild(card);
+      });
+      achSection.classList.add('has-items');
+    }
+
+    async function loadAchievements() {
+      try { await loadNode('achievements', renderAchievements); }
+      catch (e) {
+        console.warn('Achievements:', e.message);
+        achSection.classList.remove('is-loading');   // error hole loading section lukiye felo
+      }
     }
     loadAchievements();
     document.getElementById('ach-lightbox').addEventListener('click', function () { this.classList.remove('open'); });
