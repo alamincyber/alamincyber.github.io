@@ -6,6 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="canonical" href="https://alamincyber.com/tools" />
   <title>Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://mywebsite-c2d4a-default-rtdb.firebaseio.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap">
   <link rel="stylesheet" href="../assets/css/style.css" />
   <style>
     .tool-card {
@@ -126,7 +130,7 @@
       <h1 class="section-title">Tools</h1>
       <div class="section-divider"></div>
       <div id="tools-container" class="grid-3">
-        <p class="loading">&gt; Fetching tools files...</p>
+        <p class="loading" role="status"><span class="spinner" aria-hidden="true"></span>&gt; Fetching tools files...</p><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
       </div>
     </section>
   </div>
@@ -142,8 +146,7 @@
 
   <script type="module">
     import { startMatrixRain } from '../assets/js/matrix.js';
-    import { db } from '../assets/js/firebase-config.js';
-    import { ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { loadNode, toList } from '../assets/js/db-fast.js';
 
     startMatrixRain();
 
@@ -176,29 +179,15 @@
       const container = document.getElementById('tools-container');
 
       try {
-        const snap = await get(ref(db, TOOLS_PATH));
+        await loadNode(TOOLS_PATH, render);
+      } catch (e) {
+        console.error('Load error:', e);
+        container.innerHTML =
+          `<div class="empty-state" style="grid-column:1/-1">&gt; Error: ${e.message}</div>`;
+      }
 
-        // Debug: browser console-এ দেখুন
-        console.log('Firebase snapshot exists:', snap.exists());
-        console.log('Firebase snapshot size:', snap.size);
-        console.log('Firebase raw data:', snap.val());
-
-        if (!snap.exists()) {
-          container.innerHTML =
-            '<div class="empty-state" style="grid-column:1/-1">&gt; No tools yet. Add via admin dashboard.</div>';
-          return;
-        }
-
-        // Collect all children into an array
-        const items = [];
-        snap.forEach(child => {
-          const val = child.val();
-          if (val && typeof val === 'object') {
-            items.push({ key: child.key, ...val });
-          }
-        });
-
-        console.log('Total items loaded:', items.length);
+      function render(data) {
+        const items = toList(data);
 
         if (items.length === 0) {
           container.innerHTML =
@@ -223,7 +212,7 @@
 
           // Build image HTML
           const imgHtml = d.imageUrl
-            ? `<img src="${d.imageUrl}" class="tool-img" alt="${name}" onerror="this.style.display='none'">`
+            ? `<img src="${d.imageUrl}" class="tool-img" loading="lazy" decoding="async" alt="${name}" onerror="this.style.display='none'">`
             : `<div class="tool-img-placeholder">// TOOL IMAGE</div>`;
 
           // Build link buttons HTML
@@ -259,11 +248,6 @@
 
           container.appendChild(card);
         });
-
-      } catch (e) {
-        console.error('Firebase load error:', e);
-        container.innerHTML =
-          `<div class="empty-state" style="grid-column:1/-1">&gt; Error: ${e.message}</div>`;
       }
     }
 
