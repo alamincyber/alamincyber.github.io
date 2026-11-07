@@ -7,7 +7,11 @@
 <link rel="canonical" href="https://alamincyber.com/Certificates" />
   <title>Certificates</title>
 
-<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://mywebsite-c2d4a-default-rtdb.firebaseio.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap">
+  <link rel="stylesheet" href="../assets/css/style.css">
 
 <style>
 
@@ -132,7 +136,7 @@ cursor:pointer;
 
 <div id="certs-container" class="grid-3">
 
-<p class="loading">&gt; Loading certificates...</p>
+<p class="loading" role="status"><span class="spinner" aria-hidden="true"></span>&gt; Loading certificates...</p><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
 
 </div>
 
@@ -154,38 +158,27 @@ cursor:pointer;
 <script type="module">
 
 import { startMatrixRain } from '../assets/js/matrix.js'
-import { db } from '../assets/js/firebase-config.js'
-import { ref,get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"
+import { loadNode, toList } from '../assets/js/db-fast.js'
 
 
 startMatrixRain()
 
 
-async function loadCertificates(){
+function renderCerts(data){
 
 const container=document.getElementById("certs-container")
 
-try{
+const certs=toList(data)
 
-const snapshot=await get(ref(db,"certificates"))
+if(!certs.length){
 
-if(!snapshot.exists()){
-
-container.innerHTML=`<div class="empty-state" style="grid-column:1/-1">> No certificates yet</div>`
+container.innerHTML=`<div class="empty-state" style="grid-column:1/-1">&gt; No certificates yet</div>`
 
 return
 
 }
 
 container.innerHTML=""
-
-let certs=[]
-
-snapshot.forEach(child=>{
-
-certs.push(child.val())
-
-})
 
 certs.reverse()
 
@@ -198,7 +191,7 @@ card.className="card cert-card"
 card.innerHTML=`
 
 ${data.imageUrl
-?`<img src="${data.imageUrl}" class="cert-img" onclick="openLightbox('${data.imageUrl}')">`
+?`<img src="${data.imageUrl}" class="cert-img" loading="lazy" decoding="async" onclick="openLightbox('${data.imageUrl}')">`
 :`<div class="cert-img-placeholder">🏆</div>`
 }
 
@@ -222,9 +215,17 @@ container.appendChild(card)
 
 }
 
+async function loadCertificates(){
+
+try{
+
+await loadNode("certificates",renderCerts)
+
+}
+
 catch(err){
 
-container.innerHTML=`<div class="empty-state" style="grid-column:1/-1">> ${err.message}</div>`
+document.getElementById("certs-container").innerHTML=`<div class="empty-state" style="grid-column:1/-1">&gt; ${err.message}</div>`
 
 }
 
