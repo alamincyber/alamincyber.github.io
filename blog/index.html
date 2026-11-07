@@ -7,7 +7,11 @@
 <link rel="canonical" href="https://alamincyber.com/Blog" />
   <title>Blog</title>
 
-<link rel="stylesheet" href="../assets/css/style.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://mywebsite-c2d4a-default-rtdb.firebaseio.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap">
+  <link rel="stylesheet" href="../assets/css/style.css" />
 
 <style>
 .blog-card { cursor:pointer; }
@@ -138,7 +142,7 @@ color:var(--red);
 <div class="section-divider"></div>
 
 <div id="blog-container" class="grid-3">
-<p class="loading">&gt; Fetching blog posts...</p>
+<p class="loading" role="status"><span class="spinner" aria-hidden="true"></span>&gt; Fetching blog posts...</p><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
 </div>
 
 </section>
@@ -164,8 +168,7 @@ color:var(--red);
 <script type="module">
 
 import { startMatrixRain } from '../assets/js/matrix.js';
-import { db } from '../assets/js/firebase-config.js';
-import { ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { loadNode, toList } from '../assets/js/db-fast.js';
 
 startMatrixRain();
 
@@ -182,15 +185,13 @@ day:'numeric'
 
 
 
-async function loadBlogs(){
+function renderBlogs(data){
 
 const container=document.getElementById('blog-container');
 
-try{
+const items=toList(data);
 
-const snap=await get(ref(db,'blogs'));
-
-if(!snap.exists()){
+if(!items.length){
 container.innerHTML=
 '<div class="empty-state" style="grid-column:1/-1">&gt; No posts yet. Check back soon!</div>';
 return;
@@ -198,15 +199,7 @@ return;
 
 container.innerHTML='';
 
-const data=snap.val();
-
-const items=Object.keys(data).map(key=>({
-key:key,
-...data[key]
-}));
-
-
-items.sort((a,b)=>b.createdAt-a.createdAt);
+items.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
 
 
 items.forEach(d=>{
@@ -216,7 +209,7 @@ card.className='card blog-card';
 
 card.innerHTML=`
 
-${d.imageUrl ? `<img src="${d.imageUrl}" class="blog-img" alt="${d.title}">` : ''}
+${d.imageUrl ? `<img src="${d.imageUrl}" class="blog-img" alt="${d.title}" loading="lazy" decoding="async">` : ''}
 
 <div class="blog-meta">
 <span class="blog-date">${formatDate(d.createdAt)}</span>
@@ -240,9 +233,17 @@ container.appendChild(card);
 
 }
 
+async function loadBlogs(){
+
+try{
+
+await loadNode('blogs',renderBlogs);
+
+}
+
 catch(e){
 
-container.innerHTML=
+document.getElementById('blog-container').innerHTML=
 `<div class="empty-state" style="grid-column:1/-1">
 &gt; Error: ${e.message}
 </div>`;
