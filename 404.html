@@ -15,16 +15,22 @@
             box-sizing: border-box;
         }
 
+        html {
+            width: 100%;
+            min-height: 100%;
+        }
+
         body {
             min-height: 100vh;
+            min-height: 100svh;
             display: flex;
             align-items: center;
             justify-content: center;
             background: #050505;
             color: #ffffff;
             font-family: 'Courier New', monospace;
-            overflow: hidden;
             padding: 20px;
+            overflow-x: hidden;
         }
 
         body::before {
@@ -32,8 +38,15 @@
             position: fixed;
             inset: 0;
             background-image:
-                linear-gradient(rgba(0,255,65,0.035) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,255,65,0.035) 1px, transparent 1px);
+                linear-gradient(
+                    rgba(0,255,65,0.035) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(0,255,65,0.035) 1px,
+                    transparent 1px
+                );
             background-size: 35px 35px;
             pointer-events: none;
         }
@@ -44,6 +57,7 @@
             text-align: center;
             position: relative;
             z-index: 1;
+            margin: auto;
         }
 
         .status {
@@ -58,8 +72,9 @@
             font-weight: bold;
             line-height: 1;
             color: #00ff41;
-            text-shadow: 0 0 15px rgba(0,255,65,0.5),
-                         0 0 40px rgba(0,255,65,0.2);
+            text-shadow:
+                0 0 15px rgba(0,255,65,0.5),
+                0 0 40px rgba(0,255,65,0.2);
             margin-bottom: 15px;
         }
 
@@ -87,6 +102,7 @@
             font-size: 13px;
             line-height: 2;
             color: #888888;
+            overflow-wrap: break-word;
         }
 
         .terminal-header {
@@ -107,6 +123,7 @@
         .buttons {
             display: flex;
             justify-content: center;
+            align-items: center;
             gap: 15px;
             flex-wrap: wrap;
         }
@@ -156,7 +173,13 @@
             color: #00ff41;
         }
 
+        /* Normal Mobile View */
+
         @media (max-width: 480px) {
+            body {
+                padding: 20px;
+            }
+
             .terminal {
                 font-size: 11px;
                 padding: 14px;
@@ -176,11 +199,52 @@
             }
         }
 
+        /* Desktop Site Mode on Mobile */
+
+        html.desktop-mode-mobile .container {
+            width: 100%;
+            max-width: none;
+        }
+
+        html.desktop-mode-mobile .description {
+            max-width: 90%;
+            font-size: calc(14px * var(--desktop-scale));
+        }
+
+        html.desktop-mode-mobile .terminal {
+            width: 100%;
+            font-size: calc(13px * var(--desktop-scale));
+        }
+
+        html.desktop-mode-mobile h1 {
+            font-size: calc(32px * var(--desktop-scale));
+        }
+
+        html.desktop-mode-mobile .status {
+            font-size: calc(13px * var(--desktop-scale));
+        }
+
+        html.desktop-mode-mobile .btn {
+            font-size: calc(13px * var(--desktop-scale));
+            padding:
+                calc(13px * var(--desktop-scale))
+                calc(25px * var(--desktop-scale));
+        }
+
+        html.desktop-mode-mobile footer {
+            font-size: calc(11px * var(--desktop-scale));
+        }
+
+        /* Reduced Motion */
+
         @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
+            *,
+            *::before,
+            *::after {
                 transition: none !important;
             }
         }
+
     </style>
 </head>
 
@@ -210,23 +274,28 @@
             </div>
 
             <div>
-                <span class="command">$</span> system.check_page()
+                <span class="command">$</span>
+                system.check_page()
             </div>
 
             <div>
-                <span class="error">[ERROR]</span> Page not found.
+                <span class="error">[ERROR]</span>
+                Page not found.
             </div>
 
             <div>
-                <span class="command">$</span> system.status()
+                <span class="command">$</span>
+                system.status()
             </div>
 
             <div>
-                <span class="error">[404]</span> Requested resource unavailable.
+                <span class="error">[404]</span>
+                Requested resource unavailable.
             </div>
 
             <div>
-                <span class="command">$</span> system.redirect_home()
+                <span class="command">$</span>
+                system.redirect_home()
             </div>
 
             <div style="color:#00ff41;">
@@ -241,7 +310,9 @@
                 &lt; Back to Home
             </a>
 
-            <button onclick="goBack()" class="btn btn-secondary">
+            <button
+                onclick="goBack()"
+                class="btn btn-secondary">
                 Go Back
             </button>
 
@@ -249,6 +320,7 @@
 
         <footer>
             <p>© 2026 Al Amin. All Rights Reserved.</p>
+
             <p>
                 Cybersecurity Enthusiast |
                 Bug Hunter |
@@ -259,13 +331,57 @@
     </main>
 
     <script>
-        function goBack() {
-            if (window.history.length > 1) {
-                window.history.back();
+
+        // Detect Desktop Site Mode on Mobile
+
+        function adjustDesktopMobileView() {
+
+            const isDesktopMode =
+                window.innerWidth > window.screen.width * 1.2;
+
+            if (isDesktopMode) {
+
+                document.documentElement.classList.add(
+                    "desktop-mode-mobile"
+                );
+
+                document.documentElement.style.setProperty(
+                    "--desktop-scale",
+                    window.innerWidth / window.screen.width
+                );
+
             } else {
-                window.location.href = "/";
+
+                document.documentElement.classList.remove(
+                    "desktop-mode-mobile"
+                );
+
             }
         }
+
+        adjustDesktopMobileView();
+
+        window.addEventListener(
+            "resize",
+            adjustDesktopMobileView
+        );
+
+        // Go Back Button
+
+        function goBack() {
+
+            if (window.history.length > 1) {
+
+                window.history.back();
+
+            } else {
+
+                window.location.href = "/";
+
+            }
+
+        }
+
     </script>
 
 </body>
